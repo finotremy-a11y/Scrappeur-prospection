@@ -1,0 +1,88 @@
+<div class="campaigns-page">
+  <div class="page-header">
+    <h1>📧 Campagnes Email</h1>
+    <div class="global-stats">
+      <span class="stat-badge"><strong><%= @global_ready %></strong> contacts prêts</span>
+      <span class="stat-badge sent"><strong><%= @global_sent %></strong> déjà contactés</span>
+    </div>
+  </div>
+
+  <% if notice %>
+    <div class="alert-notice"><%= notice %></div>
+  <% end %>
+
+  <%# Quick send form %>
+  <div class="quick-send card">
+    <h2>🚀 Lancer une campagne</h2>
+    <%= form_with url: send_campaign_path, method: :post, local: true do |f| %>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Catégorie</label>
+          <%= f.select :category, [["Toutes les catégories", ""], ["Mairies", "town_hall"], ["Écoles", "school"], ["Médical", "medical"], ["B2B", "b2b"], ["Associations", "association"], ["Hébergements", "accommodation"], ["Coachs", "coach"]], {}, class: "select-input" %>
+        </div>
+        <div class="form-group">
+          <label>Nombre d'emails</label>
+          <%= f.number_field :limit, value: 50, min: 1, max: 300, class: "number-input" %>
+        </div>
+        <div class="form-group form-group-btn">
+          <%= f.submit "▶ Envoyer", class: "btn-send" %>
+        </div>
+      </div>
+    <% end %>
+    <p class="tip">⏱️ L'envoi est limité à ~14 emails/minute pour respecter les limites Brevo (300/jour). L'opération tourne en arrière-plan.</p>
+  </div>
+
+  <%# Per-category stats %>
+  <h2>Statistiques par catégorie</h2>
+  <div class="category-grid">
+    <% category_labels = { "school" => "🏫 Écoles", "medical" => "🏥 Médical", "b2b" => "💼 B2B", "association" => "🤝 Associations", "accommodation" => "🏨 Hébergements", "coach" => "🏋️ Coachs", "town_hall" => "🏛️ Mairies" } %>
+    <% @stats.each do |cat, s| %>
+      <div class="category-card">
+        <div class="cat-name"><%= category_labels[cat] || cat %></div>
+        <div class="cat-stats">
+          <span><strong><%= s[:total] %></strong> total</span>
+          <span><strong class="green"><%= s[:with_email] %></strong> avec email</span>
+          <span><strong class="blue"><%= s[:ready] %></strong> à contacter</span>
+          <span><strong class="orange"><%= s[:already_sent] %></strong> déjà envoyés</span>
+        </div>
+        <div class="cat-actions">
+          <%= link_to "👁 Aperçu", preview_campaign_path(category: cat), target: "_blank", class: "btn-preview" %>
+          <%= form_with url: send_campaign_path, method: :post, local: true, style: "display:inline" do |f| %>
+            <%= f.hidden_field :category, value: cat %>
+            <%= f.hidden_field :limit, value: 50 %>
+            <%= f.submit "▶ 50 emails", class: "btn-send-small" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .campaigns-page { max-width: 1100px; margin: 0 auto; padding: 20px; font-family: 'Inter', sans-serif; }
+  .page-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+  .page-header h1 { font-size: 1.8rem; margin: 0; }
+  .global-stats { display: flex; gap: 12px; }
+  .stat-badge { background: #f0f4ff; color: #2563eb; padding: 8px 16px; border-radius: 999px; font-size: 0.9rem; }
+  .stat-badge.sent { background: #f0fdf4; color: #16a34a; }
+  .alert-notice { background: #d1fae5; color: #065f46; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; }
+  .card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .card h2 { margin-top: 0; font-size: 1.2rem; }
+  .form-row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 0.85rem; font-weight: 600; color: #555; }
+  .select-input, .number-input { padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; min-width: 180px; }
+  .btn-send { background: #2563eb; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; }
+  .btn-send:hover { background: #1d4ed8; }
+  .tip { font-size: 0.82rem; color: #6b7280; margin-top: 14px; margin-bottom: 0; }
+  .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .category-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .cat-name { font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; }
+  .cat-stats { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: #555; margin-bottom: 14px; }
+  .green { color: #16a34a; }
+  .blue { color: #2563eb; }
+  .orange { color: #d97706; }
+  .cat-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .btn-preview { font-size: 0.8rem; color: #2563eb; text-decoration: none; border: 1px solid #2563eb; padding: 5px 10px; border-radius: 6px; }
+  .btn-send-small { background: #2563eb; color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+</style>

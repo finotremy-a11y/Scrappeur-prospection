@@ -1,0 +1,42 @@
+<div class="header">
+  <h1>🇫🇷 Annuaire des Mairies</h1>
+  <p>Récupération des emails des mairies par département</p>
+  
+  <%= form_with url: root_path, method: :get, class: "search-form", local: true do |form| %>
+    <%= form.text_field :search, value: params[:search], placeholder: "Rechercher une ville, un département...", class: "search-input" %>
+    <%= form.submit "Chercher", class: "btn-search" %>
+  <% end %>
+
+  <% if @town_halls.empty? %>
+    <p class="empty-state">Aucune mairie trouvée ! Lancez `rails scrape:town_halls` ou affinez votre recherche.</p>
+  <% else %>
+    <p class="results-count"><strong><%= @town_halls.count %></strong> mairies trouvées</p>
+  <% end %>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Département</th>
+        <th>Ville</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @town_halls.each do |town| %>
+        <tr>
+          <td><span class="badge"><%= town.department.titleize %></span></td>
+          <td class="town-name"><%= town.name.titleize %></td>
+          <td>
+            <% if town.email.present? %>
+              <a href="mailto:<%= town.email %>" class="email-link"><%= town.email %></a>
+            <% else %>
+              <span class="no-email">Non renseigné</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,2 @@
+class TownHall < ApplicationRecord
+end

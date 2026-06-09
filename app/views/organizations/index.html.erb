@@ -1,0 +1,60 @@
+<div class="header">
+  <h1>🚀 Base de Données Globale</h1>
+  <p>Annuaire multi-sources B2B, Écoles, Santé, Associations...</p>
+  
+  <%= form_with url: root_path, method: :get, class: "search-form", local: true do |form| %>
+    <%= form.select :category, Organization.categories.keys.map { |k| [k.humanize, k] }, { include_blank: "Toutes catégories", selected: params[:category] }, class: "search-select" %>
+    <%= form.text_field :search, value: params[:search], placeholder: "Rechercher un nom, ville...", class: "search-input" %>
+    <%= form.submit "Filtrer", class: "btn-search" %>
+  <% end %>
+
+  <% if @organizations.empty? %>
+    <div class="empty-state">
+      <p>Aucune organisation trouvée !</p>
+      <p style="font-size: 0.9em; margin-top: 10px; color: #64748b;">
+        Vous pouvez lancer le scraper en arrière-plan via la console avec `ScrapeOpenDataJob.perform_later(:school, "75")`
+      </p>
+    </div>
+  <% else %>
+    <p class="results-count"><%= page_entries_info @organizations %></p>
+  <% end %>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Catégorie</th>
+        <th>Source</th>
+        <th>Nom</th>
+        <th>Ville / Dpt</th>
+        <th>Email</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @organizations.each do |org| %>
+        <tr>
+          <td><span class="badge cat-<%= org.category %>"><%= org.category.titleize %></span></td>
+          <td style="color: #64748b; font-size: 0.85em;"><%= org.source %></td>
+          <td class="town-name"><%= org.name.titleize %></td>
+          <td><%= org.city || org.department %></td>
+          <td>
+            <% if org.email.present? %>
+              <a href="mailto:<%= org.email %>" class="email-link"><%= org.email %></a>
+            <% else %>
+              <span class="no-email">Non renseigné</span>
+            <% end %>
+          </td>
+          <td>
+            <%= button_to "🗑", organization_path(org), method: :delete, data: { turbo_confirm: "Supprimer #{org.name.titleize} ?" }, style: "background:none;border:none;cursor:pointer;font-size:1.4rem;color:#ef4444;padding:4px 8px;" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  
+  <div class="pagination-container" style="padding: 20px; display: flex; justify-content: center; gap: 10px;">
+    <%= paginate @organizations %>
+  </div>
+</div>
