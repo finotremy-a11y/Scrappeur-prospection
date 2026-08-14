@@ -10,7 +10,7 @@ module Mailers
       association:  "Boostez la visibilité de votre association",
       accommodation: "Recevez plus de réservations directes",
       coach:        "Développez votre activité de coaching en ligne",
-      restaurant:   "Remplissez vos tables grâce au digital",
+      restaurant:   "Remplissez vos tables grâce au digital"
     }.freeze
 
     def self.build(organization)
@@ -144,7 +144,7 @@ module Mailers
         <p>Ces outils permettent d'attirer des clients qui vous cherchent sur Google et de professionnaliser votre image.</p>
         <p>Je serais ravi d'échanger quelques minutes sur vos objectifs.</p>
       HTML
-      restaurant: <<~HTML,
+      restaurant: <<~HTML
         <div class="highlight-box">
           <p>✅ <strong>Menu en ligne</strong> — QR code, mise à jour instantanée et click & collect</p>
           <p>✅ <strong>Réservation de table en ligne</strong> — Moins de no-show, plus de couverts assurés</p>

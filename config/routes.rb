@@ -1,7 +1,11 @@
 Rails.application.routes.draw do
   root "organizations#index"
-  resources :organizations, only: [:index, :destroy]
-  
+  resources :organizations, only: [ :index, :destroy ]
+
+  # Scraping interface
+  get  "scraping", to: "scrapings#index",  as: :scraping_index
+  post "scraping", to: "scrapings#create", as: :scraping_launch
+
   # Campaign management
   get  "campaigns",         to: "campaigns#index",        as: :campaigns
   post "campaigns/send",    to: "campaigns#send_campaign", as: :send_campaign

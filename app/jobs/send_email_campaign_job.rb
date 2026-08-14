@@ -4,7 +4,7 @@ class SendEmailCampaignJob < ApplicationJob
   def perform(category: nil, limit: 100)
     scope = Organization.ready_to_contact
     scope = scope.where(category: Organization.categories[category]) if category.present?
-    
+
     orgs = scope.order(created_at: :asc).limit(limit)
     puts "-> Sending emails to #{orgs.count} organizations (category: #{category || 'all'})..."
 

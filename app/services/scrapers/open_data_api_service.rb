@@ -6,7 +6,7 @@ module Scrapers
       puts "Fetching schools for department #{department_code} from OpenData API..."
       # API endpoint for French Education Ministry Open Data
       url = "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-annuaire-education/records"
-      
+
       # Using the standard refine parameter for API v2.1
       query = { limit: 100 }
       if department_code.present?
@@ -16,16 +16,16 @@ module Scrapers
 
       begin
         response = get(url, query: query)
-        
+
         if response.success?
           records = response.parsed_response["results"] || []
           valid_count = 0
-          
+
           records.each do |school|
             email = school["mail"]
             name = school["nom_etablissement"]
             city = school["nom_commune"]
-            
+
             if email.present?
               org = Organization.find_or_initialize_by(name: name, category: :school)
               org.source = "Data.education.gouv.fr"

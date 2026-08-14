@@ -1,0 +1,195 @@
+<div class="scraping-page">
+  <div class="page-header">
+    <h1>🔍 Lancer un Scraping</h1>
+    <p>Déclenchez une recherche en arrière-plan pour alimenter automatiquement votre base de données.</p>
+  </div>
+
+  <% if notice %>
+    <div class="alert-notice success"><%= notice %></div>
+  <% end %>
+  <% if alert %>
+    <div class="alert-notice error"><%= alert %></div>
+  <% end %>
+
+  <div class="card">
+    <%= form_with url: scraping_launch_path, method: :post, local: true, id: "scraping-form" do |f| %>
+
+      <div class="section-title">1. Choisissez une catégorie</div>
+      <div class="category-tiles">
+        <% @categories.each do |cat| %>
+          <label class="tile-card"
+                 data-key="<%= cat[:key] %>"
+                 data-mode="<%= cat[:mode] %>"
+                 data-ph-query="<%= cat[:placeholder_query] %>"
+                 data-ph-location="<%= cat[:placeholder_location] %>">
+            <input type="radio" name="category" value="<%= cat[:key] %>" class="cat-radio" hidden>
+            <div class="tile-label"><%= cat[:label] %></div>
+          </label>
+        <% end %>
+      </div>
+
+      <div id="params-section" style="display:none;" class="params-section">
+        <div class="section-title">2. Paramètres de recherche</div>
+
+        <div class="form-grid">
+          <div class="form-group" id="query-group">
+            <label for="query">Mots-clés / Métier</label>
+            <%= f.text_field :query, id: "query", class: "input-field", placeholder: "ex: Avocat" %>
+            <span class="field-help">Ce que vous cherchez sur Google Maps</span>
+          </div>
+
+          <div class="form-group">
+            <label for="location" id="location-label">Localisation</label>
+            <%= f.text_field :location, id: "location", class: "input-field", placeholder: "ex: Lyon" %>
+            <span class="field-help" id="location-hint">Ville ou département ciblé</span>
+          </div>
+        </div>
+
+        <div id="info-box" class="info-box">
+          <div id="info-gm" style="display:none;">
+            <strong>ℹ️ Source Google Maps :</strong> Le scraper va parcourir les fiches locales et visiter les sites web pour trouver les emails. Comptez 2 à 5 minutes.
+          </div>
+          <div id="info-od" style="display:none;">
+            <strong>⚡ Source Open Data :</strong> Scraping instantané de l'Annuaire de l'Éducation Nationale. Indiquez le code département (ex: 75, 69, 13).
+          </div>
+        </div>
+
+        <div class="action-row">
+          <%= f.submit "▶ Démarrer le scraping", class: "btn-submit" %>
+        </div>
+      </div>
+
+    <% end %>
+  </div>
+
+  <div class="terminal-card">
+    <div class="terminal-title">💻 Commande console équivalente :</div>
+    <div id="terminal-code" class="terminal-code">
+      <span class="muted">Sélectionnez une catégorie ci-dessus...</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    function initScrapingPage() {
+      const tiles = document.querySelectorAll(".tile-card");
+      const paramsSection = document.getElementById("params-section");
+      const queryGroup = document.getElementById("query-group");
+      const queryInput = document.getElementById("query");
+      const locInput = document.getElementById("location");
+      const locLabel = document.getElementById("location-label");
+      const locHint = document.getElementById("location-hint");
+      const infoGM = document.getElementById("info-gm");
+      const infoOD = document.getElementById("info-od");
+      const termCode = document.getElementById("terminal-code");
+
+      if (!tiles.length || !paramsSection) return;
+
+      tiles.forEach(tile => {
+        tile.onclick = function () {
+          tiles.forEach(t => t.classList.remove("active"));
+          this.classList.add("active");
+
+          const radio = this.querySelector(".cat-radio");
+          if (radio) radio.checked = true;
+
+          const mode = this.dataset.mode;
+          const key = this.dataset.key;
+          const phQuery = this.dataset.phQuery;
+          const phLoc = this.dataset.phLocation;
+
+          paramsSection.style.display = "block";
+
+          if (mode === "open_data") {
+            queryGroup.style.display = "none";
+            queryInput.removeAttribute("required");
+            locLabel.textContent = "Code département";
+            locInput.placeholder = phLoc || "ex: 75";
+            locHint.textContent = "Ex: 75 (Paris), 69 (Rhône), 13 (Bouches-du-Rhône)";
+            infoGM.style.display = "none";
+            infoOD.style.display = "block";
+          } else {
+            queryGroup.style.display = "block";
+            queryInput.setAttribute("required", "required");
+            queryInput.placeholder = phQuery || "ex: Médecin";
+            locLabel.textContent = "Localisation (Ville)";
+            locInput.placeholder = phLoc || "ex: Lyon";
+            locHint.textContent = "Ville ou commune ciblée";
+            infoGM.style.display = "block";
+            infoOD.style.display = "none";
+          }
+
+          updateCode(mode, key);
+        };
+      });
+
+      if (queryInput) queryInput.oninput = updateCurrentCode;
+      if (locInput) locInput.oninput = updateCurrentCode;
+
+      function updateCurrentCode() {
+        const activeTile = document.querySelector(".tile-card.active");
+        if (activeTile) {
+          updateCode(activeTile.dataset.mode, activeTile.dataset.key);
+        }
+      }
+
+      function updateCode(mode, key) {
+        if (mode === "open_data") {
+          const dep = locInput.value || "75";
+          termCode.innerHTML = `<code>ScrapeOpenDataJob.perform_later(:${key}, "${dep}")</code>`;
+        } else {
+          const q = queryInput.value || "Avocat";
+          const l = locInput.value || "Lyon";
+          termCode.innerHTML = `<code>ScrapeOpenDataJob.perform_later(:${key}, "${q}", "${l}")</code>`;
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", initScrapingPage);
+    document.addEventListener("turbo:load", initScrapingPage);
+  })();
+</script>
+
+<style>
+  .scraping-page { max-width: 1100px; margin: 0 auto; padding: 20px; font-family: 'Inter', sans-serif; }
+  .page-header { margin-bottom: 24px; }
+  .page-header h1 { font-size: 1.8rem; font-weight: 700; color: #1e293b; margin: 0 0 6px; }
+  .page-header p { color: #64748b; margin: 0; font-size: 0.95rem; }
+
+  .alert-notice { padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 500; font-size: 0.95rem; }
+  .alert-notice.success { background: #d1fae5; color: #065f46; }
+  .alert-notice.error { background: #fee2e2; color: #991b1b; }
+
+  .card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .section-title { font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-bottom: 14px; }
+
+  .category-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .tile-card {
+    background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; padding: 14px 16px;
+    cursor: pointer; text-align: center; transition: all 0.2s; user-select: none;
+  }
+  .tile-card:hover { border-color: #2563eb; background: #f0f4ff; }
+  .tile-card.active { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+  .tile-label { font-weight: 600; font-size: 0.95rem; color: #1e293b; }
+  .tile-card.active .tile-label { color: #2563eb; }
+
+  .params-section { border-top: 1px solid #f1f5f9; padding-top: 20px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
+  .input-field { padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; font-family: 'Inter', sans-serif; }
+  .input-field:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+  .field-help { font-size: 0.8rem; color: #94a3b8; }
+
+  .info-box { background: #f8fafc; border-left: 4px solid #2563eb; padding: 12px 16px; border-radius: 4px; font-size: 0.88rem; color: #334155; margin-bottom: 20px; }
+
+  .action-row { display: flex; justify-content: flex-end; }
+  .btn-submit { background: #2563eb; color: white; border: none; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: background 0.2s; }
+  .btn-submit:hover { background: #1d4ed8; }
+
+  .terminal-card { background: #1e293b; color: #f8fafc; border-radius: 12px; padding: 18px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .terminal-title { font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 8px; }
+  .terminal-code { font-family: monospace; font-size: 0.95rem; color: #38bdf8; word-break: break-all; }
+  .terminal-code .muted { color: #64748b; font-style: italic; }
+</style>

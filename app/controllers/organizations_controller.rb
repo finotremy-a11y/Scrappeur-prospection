@@ -1,7 +1,7 @@
 class OrganizationsController < ApplicationController
   def index
     @organizations = Organization.order(created_at: :desc)
-    
+
     if params[:category].present?
       @organizations = @organizations.where(category: params[:category])
     end
@@ -14,7 +14,12 @@ class OrganizationsController < ApplicationController
   end
 
   def destroy
-    Organization.find(params[:id]).destroy
-    redirect_back fallback_location: root_path, notice: "Contact supprimé."
+    organization = Organization.find_by(id: params[:id])
+    if organization
+      organization.destroy
+      redirect_back fallback_location: root_path, notice: "Contact supprimé."
+    else
+      redirect_back fallback_location: root_path, alert: "Organisation introuvable."
+    end
   end
 end

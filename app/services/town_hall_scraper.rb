@@ -1,6 +1,6 @@
 class TownHallScraper
-  require 'nokogiri'
-  require 'open-uri'
+  require "nokogiri"
+  require "open-uri"
 
   BASE_URL = "https://annuaire-des-mairies.com"
 
@@ -11,8 +11,8 @@ class TownHallScraper
   def call(start_from: nil)
     puts "Starting the scrape process of French Town Halls..."
     main_page = Nokogiri::HTML(URI.open(BASE_URL))
-    
-    department_links = main_page.css('a.lientxt').map { |a| { name: a.text.strip, url: a['href'] } }
+
+    department_links = main_page.css("a.lientxt").map { |a| { name: a.text.strip, url: a["href"] } }
     puts "Found #{department_links.count} departments to scrape."
 
     # Si un département de départ est spécifié, on saute les précédents
@@ -31,7 +31,7 @@ class TownHallScraper
       scrape_department(dep)
       sleep 1
     end
-    
+
     puts "Finished scraping all departments."
   end
 
@@ -39,7 +39,7 @@ class TownHallScraper
 
   def scrape_department(dep)
     dep_url = "#{BASE_URL}/#{dep[:url]}"
-    
+
     begin
       dep_page = Nokogiri::HTML(URI.open(dep_url))
     rescue StandardError => e
@@ -48,8 +48,8 @@ class TownHallScraper
     end
 
     # Links to town halls are also 'a.lientxt' on department pages
-    town_links = dep_page.css('a.lientxt').map { |a| { name: a.text.strip, url: a['href'] } }
-    
+    town_links = dep_page.css("a.lientxt").map { |a| { name: a.text.strip, url: a["href"] } }
+
     puts "  -> Found #{town_links.count} town halls."
 
     town_links.each do |town|
@@ -60,16 +60,16 @@ class TownHallScraper
 
   def scrape_town_hall(town, department_name)
     town_path = town[:url]
-    
+
     # Clean the relative path: replace './' with nothing, or remove leading '/'
     if town_path.start_with?("./")
-      town_path = town_path[2..-1] 
+      town_path = town_path[2..-1]
     elsif town_path.start_with?("/")
       town_path = town_path[1..-1]
     end
 
     town_url = "#{BASE_URL}/#{town_path}"
-    
+
     begin
       town_page = Nokogiri::HTML(URI.open(town_url))
     rescue StandardError => e
@@ -78,7 +78,7 @@ class TownHallScraper
     end
 
     # Extract email using regex on the main section text
-    email = town_page.css('main').text.scan(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/).first
+    email = town_page.css("main").text.scan(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/).first
 
     if email && !email.include?("annuaire-des-mairies.com")
       # Save to DB

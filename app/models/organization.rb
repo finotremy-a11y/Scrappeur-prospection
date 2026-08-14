@@ -12,7 +12,7 @@ class Organization < ApplicationRecord
 
   validates :name, presence: true
 
-  scope :with_email, -> { where.not(email: [nil, '']).where("email LIKE ?", "%@%").where.not("email LIKE ?", "Visiter:%").where.not("email LIKE ?", "Tél:%") }
+  scope :with_email, -> { where.not(email: [ nil, "" ]).where("email LIKE ?", "%@%").where.not("email LIKE ?", "Visiter:%").where.not("email LIKE ?", "Tél:%") }
   scope :not_contacted, -> { where(email_sent_at: nil) }
   scope :not_unsubscribed, -> { where(unsubscribed_at: nil) }
   scope :ready_to_contact, -> { with_email.not_contacted.not_unsubscribed }
