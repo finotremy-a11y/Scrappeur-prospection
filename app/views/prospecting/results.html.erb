@@ -1,0 +1,42 @@
+<% content_for :title, "Résultats de prospection — Scrappeur" %>
+<main class="prospecting-page">
+  <div class="results-header">
+    <div>
+      <span class="eyebrow">Résultats du scan</span>
+      <h1><%= @city %> · <%= @category&.humanize %></h1>
+      <p><%= @organizations.size %> entreprise(s), triées par score décroissant.</p>
+    </div>
+    <div class="results-actions">
+      <%= link_to "Exporter la feuille de route (CSV)", prospecting_export_path, class: "btn-submit" %>
+      <%= link_to "Nouveau scan", prospecting_path, class: "btn-secondary" %>
+    </div>
+  </div>
+
+  <% if @skipped_count.positive? %>
+    <div class="alert-notice error"><%= pluralize(@skipped_count, "entreprise") %> ignorée(s) faute de site web enregistré.</div>
+  <% end %>
+  <% @scan_errors.each do |error| %><div class="alert-notice error"><%= error %></div><% end %>
+
+  <section class="table-card">
+    <div class="table-scroll">
+      <table class="prospects-table">
+        <thead><tr><th>Entreprise</th><th>Site</th><th>Score</th><th>HTTPS</th><th>HTTP</th><th>Temps</th><th>CMS</th><th>Formulaire</th></tr></thead>
+        <tbody>
+          <% @organizations.each do |organization| %>
+            <tr>
+              <td><strong><%= organization.name %></strong><br><span class="muted"><%= organization.email.presence || "—" %></span></td>
+              <td><%= organization.website.present? ? link_to(organization.website, organization.website, target: "_blank", rel: "noopener") : "—" %></td>
+              <td><span class="score-badge <%= organization.lead_score.to_i >= 7 ? "score-hot" : "score-normal" %>"><%= organization.lead_score || "—" %>/10</span></td>
+              <td><span class="status-dot <%= organization.is_https ? "good" : "bad" %>"></span><%= organization.is_https ? "Sécurisé" : "À corriger" %></td>
+              <td><span class="<%= organization.http_status.to_i >= 400 ? "pain-point" : "healthy" %>"><%= organization.http_status || "—" %></span></td>
+              <td><span class="<%= organization.load_time_sec.to_f > 4 ? "pain-point" : "healthy" %>"><%= organization.load_time_sec ? "#{organization.load_time_sec}s" : "—" %></span></td>
+              <td><%= organization.cms_detected.presence || "—" %></td>
+              <td><span class="status-dot <%= organization.has_form ? "good" : "bad" %>"></span><%= organization.has_form.nil? ? "—" : (organization.has_form ? "Oui" : "Absent") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <% if @organizations.empty? %><p class="empty-state">Aucun résultat pour cette ville et ce secteur. Lancez d'abord le scraping local.</p><% end %>
+  </section>
+</main>

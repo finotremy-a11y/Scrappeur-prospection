@@ -2,6 +2,11 @@ Rails.application.routes.draw do
   root "organizations#index"
   resources :organizations, only: [ :index, :destroy ]
 
+  get  "prospection",         to: "prospecting#index",   as: :prospecting
+  post "prospection",         to: "prospecting#create",  as: :prospecting_scan
+  get  "prospection/resultats", to: "prospecting#results", as: :prospecting_results
+  get  "prospection/export",  to: "prospecting#export",  as: :prospecting_export
+
   # Scraping interface
   get  "scraping", to: "scrapings#index",  as: :scraping_index
   post "scraping", to: "scrapings#create", as: :scraping_launch

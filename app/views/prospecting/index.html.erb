@@ -1,0 +1,26 @@
+<% content_for :title, "Dashboard de prospection — Scrappeur" %>
+<main class="prospecting-page">
+  <section class="prospecting-hero">
+    <span class="eyebrow">Prospection locale</span>
+    <h1>Transformez vos résultats en feuille de route commerciale.</h1>
+    <p>Analysez les sites de vos entreprises et faites remonter les prospects les plus chauds.</p>
+  </section>
+
+  <% if alert %><div class="alert-notice error"><%= alert %></div><% end %>
+
+  <section class="prospecting-card">
+    <%= form_with url: prospecting_scan_path, method: :post, local: true do |form| %>
+      <div class="prospecting-form-grid">
+        <div class="form-group">
+          <%= form.label :city, "Ville / Zone géographique" %>
+          <%= form.text_field :city, required: true, placeholder: "Ex. Lyon", class: "input-field" %>
+        </div>
+        <div class="form-group">
+          <%= form.label :category, "Secteur d'activité" %>
+          <%= form.select :category, options_for_select(@categories), { prompt: "Choisir un secteur" }, class: "input-field", required: true %>
+        </div>
+      </div>
+      <%= form.submit "Lancer le Scan", class: "btn-submit" %>
+    <% end %>
+  </section>
+</main>

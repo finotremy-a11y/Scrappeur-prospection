@@ -1,0 +1,7 @@
+name,website
+URL vide,
+Texte invalide,pas de site web
+SSL invalide,https://expired.badssl.com/
+Domaine inexistant,https://ce-domaine-nexiste-vraiment-pas.invalid/
+Timeout possible,http://192.0.2.1/
+HTML vide ou corrompu,http://127.0.0.1:8765/test_empty.html

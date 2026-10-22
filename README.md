@@ -13,6 +13,7 @@ Application Rails de scraping B2B permettant de collecter des informations de co
 - **File de jobs** Solid Queue
 - **Scraping** Nokogiri, HTTParty, Ferrum (navigateur headless via Chrome)
 - **Emailing** Brevo API (ex-Sendinblue)
+- 
 - **Déploiement** Docker / Kamal
 
 ---
@@ -46,16 +47,16 @@ BREVO_API_KEY=your_brevo_api_key
 
 ## 🗂️ Catégories supportées
 
-| Catégorie       | Source              | Description                        |
-|-----------------|---------------------|------------------------------------|
-| `:school`       | API Gouvernementale | Écoles par département             |
-| `:medical`      | Google Maps         | Médecins, cliniques, pharmacies    |
-| `:b2b`          | Google Maps         | Entreprises (avocats, comptables…) |
-| `:association`  | Google Maps         | Associations                       |
-| `:accommodation`| Google Maps         | Hôtels, hébergements               |
-| `:coach`        | Google Maps         | Coachs sportifs                    |
-| `:restaurant`   | Google Maps         | Restaurants                        |
-| `:town_hall`    | Scraper dédié       | Mairies                            |
+| Catégorie         | Source              | Description                         |
+| ------------------ | ------------------- | ----------------------------------- |
+| `:school`        | API Gouvernementale | Écoles par département            |
+| `:medical`       | Google Maps         | Médecins, cliniques, pharmacies    |
+| `:b2b`           | Google Maps         | Entreprises (avocats, comptables…) |
+| `:association`   | Google Maps         | Associations                        |
+| `:accommodation` | Google Maps         | Hôtels, hébergements              |
+| `:coach`         | Google Maps         | Coachs sportifs                     |
+| `:restaurant`    | Google Maps         | Restaurants                         |
+| `:town_hall`     | Scraper dédié     | Mairies                             |
 
 ---
 
@@ -100,6 +101,30 @@ SendEmailCampaignJob.perform_now(category: :medical, limit: 200)
 
 > ℹ️ Un délai de 4 secondes entre chaque envoi est respecté pour rester sous la limite Brevo (~300 mails/jour).
 
+## 🔎 Ajouter les URLs aux prospects
+
+Le script [`url_finder.rb`](./url_finder.rb) enrichit un fichier `prospects.csv` existant
+sans refaire le scraping des contacts. Il recherche le premier résultat organique pertinent
+sur DuckDuckGo HTML, ignore plusieurs annuaires connus et écrit le résultat dans
+`prospects_avec_urls.csv`.
+
+Le CSV d'entrée doit contenir les colonnes `Nom de l'entreprise` et `Ville` (les variantes
+`Entreprise`, `Nom` et `Commune` sont également reconnues) :
+
+```bash
+ruby url_finder.rb
+```
+
+Des chemins personnalisés peuvent être fournis en arguments :
+
+```bash
+ruby url_finder.rb mon_fichier.csv sortie.csv
+```
+
+Une pause de deux secondes est appliquée entre les lignes afin de limiter la fréquence des
+requêtes. Les lignes sans résultat conservent une colonne `website_url` vide et un message
+est affiché dans le terminal.
+
 ---
 
 ## 🏗️ Architecture
@@ -127,16 +152,16 @@ app/
 
 ## 🗄️ Modèle `Organization`
 
-| Champ            | Description                                  |
-|------------------|----------------------------------------------|
-| `name`           | Nom de l'organisation                        |
-| `email`          | Adresse email                                |
-| `phone`          | Téléphone                                    |
-| `address`        | Adresse postale                              |
-| `website`        | Site web                                     |
-| `category`       | Catégorie (enum)                             |
-| `email_sent_at`  | Date du dernier envoi d'email                |
-| `unsubscribed_at`| Date de désinscription (RGPD)               |
+| Champ               | Description                    |
+| ------------------- | ------------------------------ |
+| `name`            | Nom de l'organisation          |
+| `email`           | Adresse email                  |
+| `phone`           | Téléphone                    |
+| `address`         | Adresse postale                |
+| `website`         | Site web                       |
+| `category`        | Catégorie (enum)              |
+| `email_sent_at`   | Date du dernier envoi d'email  |
+| `unsubscribed_at` | Date de désinscription (RGPD) |
 
 ---
 

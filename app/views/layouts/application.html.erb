@@ -30,6 +30,8 @@
             class: "nav-link #{request.path == root_path ? 'active' : ''}" %>
       <%= link_to "🔍 Scraping", scraping_index_path,
             class: "nav-link #{request.path.start_with?('/scraping') ? 'active' : ''}" %>
+      <%= link_to "🎯 Prospection", prospecting_path,
+            class: "nav-link #{request.path.start_with?('/prospection') ? 'active' : ''}" %>
       <%= link_to "📧 Campagnes", campaigns_path,
             class: "nav-link #{request.path.start_with?('/campaigns') ? 'active' : ''}" %>
     </nav>
